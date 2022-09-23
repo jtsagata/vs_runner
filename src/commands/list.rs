@@ -12,11 +12,7 @@ pub struct ListCLI {
 
 /// The list subcommand
 pub fn list(cli: &ListCLI, vs_options: &VSCodeOptions) {
-    // Check if profile directories exists
-    if !(vs_options.data_dir.as_path().is_dir() && vs_options.ext_dir.as_path().is_dir()) {
-        eprintln!("Error: Profile directories is missing. Did you create the profile?");
-        std::process::exit(exitcode::CONFIG);
-    }
+    super::check_profile_dirs_exist(vs_options);
 
     let mut command = vs_options.get_command();
     command.arg("--list-extensions");
@@ -26,13 +22,7 @@ pub fn list(cli: &ListCLI, vs_options: &VSCodeOptions) {
         command.arg("--show-versions");
     }
 
-    if vs_options.be_verbose {
-        print!("Running: {}", vs_options.executable.to_string_lossy());
-        for arg in command.get_args() {
-            print!(" {}", arg.to_string_lossy());
-        }
-        println!("");
-    }
+    super::debug_run_args(vs_options, &command);
 
     // Run the command and show the output
     let output = command.execute_output().unwrap();

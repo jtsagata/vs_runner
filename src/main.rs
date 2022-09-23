@@ -30,12 +30,7 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    // /// Run VS Code with selected profile if any
-    // Run {
-    //     /// Extra agrs to pass into VS Code
-    //     #[clap(last = true)]
-    //     extra_args: Vec<String>,
-    // },
+    Run(commands::RunCLI),
     List(commands::ListCLI),
 }
 
@@ -45,6 +40,9 @@ fn main() {
 
     let vs_code_options = commands::VSCodeOptions::from(&cli);
     match &cli.command {
+        Some(Commands::Run(cli)) => {
+            commands::run(cli, &vs_code_options);
+        }
         Some(Commands::List(cli)) => {
             commands::list(cli, &vs_code_options);
         }
