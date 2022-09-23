@@ -2,8 +2,8 @@ use super::VSCodeOptions;
 use clap::Args;
 use execute::Execute;
 
-#[derive(Args, Debug)]
-/// List VS Code installed extensions
+#[derive(Args)]
+/// Lists installed extensions for the selected profile.
 pub struct ListCLI {
     /// Show versions of installed extensions
     #[arg(short = 'a', long, value_parser, value_name = "Profile")]

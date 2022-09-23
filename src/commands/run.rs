@@ -3,7 +3,7 @@ use clap::Args;
 use execute::Execute;
 // use execute::Execute;
 
-#[derive(Args, Debug)]
+#[derive(Args)]
 /// Run VS Code with selected profile if any
 pub struct RunCLI {
     /// The project directory

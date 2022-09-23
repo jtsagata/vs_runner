@@ -31,6 +31,7 @@ pub struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     Run(commands::RunCLI),
+    #[command(name = "extensions")]
     List(commands::ListCLI),
 }
 
