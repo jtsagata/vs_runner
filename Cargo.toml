@@ -1,0 +1,13 @@
+[package]
+name = "vs_runner"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "Work with VS Code Profiles."
+
+[dependencies]
+better-panic = "0.3.0"
+clap = { version = "~4.0.0-rc.2", features = ["cargo", "derive"] }
+execute = "0.2.11"
+exitcode = "1.1.2"
+which = "4.3.0"
