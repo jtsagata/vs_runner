@@ -60,5 +60,6 @@
     "errorLens.enabled": false,
     "[rust]": {
         "editor.defaultFormatter": "rust-lang.rust-analyzer"
-    }
+    },
+    "licenser.projectName": "vs_runner"
 }
