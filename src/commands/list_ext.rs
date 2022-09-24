@@ -2,6 +2,12 @@
  *   Copyright (c) 2022
  *   All rights reserved.
  */
+use std::path::PathBuf;
+
+/*
+ *   Copyright (c) 2022
+ *   All rights reserved.
+ */
 use super::VSCodeOptions;
 use clap::Args;
 use serde_json::Value;
@@ -31,8 +37,16 @@ pub struct ListCLI {
 pub fn list(cli: &ListCLI, vs_options: &VSCodeOptions) {
     super::check_profile_dirs_exist(vs_options);
 
-    let exts = get_extension_data(vs_options);
+    let exts = get_extension_data(&vs_options.ext_dir);
+    if cli.table {
+        display_as_table(exts, cli);
+    } else {
+        display_as_list(exts, cli);
+    }
+}
 
+// Display extensions as list
+fn display_as_list(exts: Vec<ExtensionData>, cli: &ListCLI) {
     for e in exts.iter() {
         if cli.commends {
             if e.display_name.is_some() {
@@ -47,6 +61,10 @@ pub fn list(cli: &ListCLI, vs_options: &VSCodeOptions) {
                     println!("# {}", e.description.as_ref().unwrap());
                 }
             }
+
+            if e.categories.len() != 0 {
+                println!("# Type: {}", e.categories.join(", "));
+            }
         }
         println!("{}", e.get_name(cli.versions));
         if cli.commends {
@@ -55,10 +73,63 @@ pub fn list(cli: &ListCLI, vs_options: &VSCodeOptions) {
     }
 }
 
+fn display_as_table(exts: Vec<ExtensionData>, cli: &ListCLI) {
+    use colored::*;
+    use terminal_size::terminal_size;
+
+    if exts.is_empty() {
+        println!("There is no installed extensions on profile");
+        return;
+    }
+
+    let (t_wdth, _) = terminal_size().unwrap();
+    let names: Vec<String> = exts.iter().map(|e| e.get_name(false)).collect();
+    let name_len = names.iter().max_by_key(|e| e.len()).unwrap().len();
+    let desc_len: usize = usize::from(t_wdth.0) - name_len - 2;
+    println!(
+        "{:a$}{:c$}",
+        "Name".bold().blue(),
+        "Description".bold().blue(),
+        a = name_len + 1,
+        c = desc_len
+    );
+
+    for e in exts.iter() {
+        let disp_name = e.display_name.clone().unwrap_or("".to_string());
+        let descr = e.description.clone().unwrap_or("".to_string());
+        let desc = if descr == "%ext.description%" {
+            "".to_string()
+        } else {
+            truncate_ellipse(&descr, desc_len)
+        };
+
+        println!(
+            "{:a$}{:c$}",
+            e.get_name(false).bold(),
+            disp_name.green(),
+            a = name_len + 1,
+            c = desc_len
+        );
+        if desc.len() != 0 && cli.commends {
+            println!("{:a$}{:c$}", "", desc, a = name_len + 1, c = desc_len);
+        }
+
+        if e.categories.len() != 0 && cli.commends {
+            let mut txt = format!("Type: {}", e.categories.join(", "));
+            txt = truncate_ellipse(&txt, desc_len);
+            println!("{:a$}{:c$}", "", txt, a = name_len + 1, c = desc_len);
+        }
+
+        if cli.commends {
+            println!("");
+        }
+    }
+}
+
 // Parse JSON file and return list of extensions as ExtensionOptions struct
-fn get_extension_data(vs_options: &VSCodeOptions) -> Vec<ExtensionData> {
+fn get_extension_data(extension_dir: &PathBuf) -> Vec<ExtensionData> {
     let mut exts = Vec::new();
-    let read_dir = std::fs::read_dir(vs_options.ext_dir.as_path()).unwrap();
+    let read_dir = std::fs::read_dir(extension_dir).unwrap();
     for entry in read_dir {
         let entry = entry.unwrap();
         let path = entry.path().join("package.json");
@@ -66,12 +137,16 @@ fn get_extension_data(vs_options: &VSCodeOptions) -> Vec<ExtensionData> {
             let json_text = std::fs::read_to_string(&path).unwrap();
             let json = serde_json::from_str::<Value>(&json_text).unwrap();
 
+            let cats = json["categories"].as_array().unwrap();
+            let cats: Vec<String> = cats.iter().map(|v| v.as_str().unwrap().into()).collect();
+
             exts.push(ExtensionData {
                 name: json["name"].as_str().unwrap().into(),
                 version: json["version"].as_str().unwrap().into(),
                 publisher: json["publisher"].as_str().unwrap().into(),
                 display_name: json["displayName"].as_str().map(|i| i.into()),
                 description: json["description"].as_str().map(|i| i.into()),
+                categories: cats,
                 icon: json["icon"].as_str().map(|i| i.into()),
             });
         }
@@ -87,6 +162,7 @@ struct ExtensionData {
     version: String,
     display_name: Option<String>,
     description: Option<String>,
+    categories: Vec<String>,
     icon: Option<String>,
 }
 
@@ -108,4 +184,19 @@ impl PartialOrd for ExtensionData {
             .to_uppercase()
             .partial_cmp(&other.get_name(true).to_uppercase())
     }
+}
+
+fn truncate_ellipse(text: &str, len: usize) -> String {
+    use unicode_segmentation::UnicodeSegmentation;
+
+    if text.graphemes(true).count() <= len {
+        return String::from(text);
+    } else if len == 0 {
+        return String::from("");
+    }
+
+    text.graphemes(true)
+        .take(len)
+        .chain("…".graphemes(true))
+        .collect()
 }

@@ -8,7 +8,11 @@ description = "Work with VS Code Profiles."
 [dependencies]
 better-panic = "0.3.0"
 clap = { version = "4.0.0-rc.2", features = ["cargo", "derive"] }
+colored = { version = "2.0.0" }
+
 execute = "0.2.11"
 exitcode = "1.1.2"
 serde_json = "1.0.85"
+terminal_size = "0.2.1"
+unicode-segmentation = "1.10.0"
 which = "4.3.0"
