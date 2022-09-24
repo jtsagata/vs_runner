@@ -26,10 +26,6 @@ pub struct Cli {
     )]
     executable: Option<PathBuf>,
 
-    /// Be verbose
-    #[arg(short, long, global = true)]
-    verbose: bool,
-
     #[command(subcommand)]
     command: Option<Commands>,
 }

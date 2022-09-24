@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2022
+ *   All rights reserved.
+ */
 use super::VSCodeOptions;
 use clap::Args;
 use execute::Execute;
@@ -9,6 +13,10 @@ pub struct RunCLI {
     /// The project directory
     #[arg(value_name = "Directory")]
     work_dir: Option<String>,
+
+    /// Be verbose
+    #[arg(short, long, global = true)]
+    verbose: bool,
 
     /// Extra agrs to pass into VS Code
     #[arg(last = true)]
