@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2022
+ *   All rights reserved.
+ */
 use std::env;
 use std::path::PathBuf;
 

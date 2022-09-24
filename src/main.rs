@@ -1,6 +1,12 @@
+/*
+ *   Copyright (c) 2022
+ *   All rights reserved.
+ */
 mod commands;
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
+
+const DEFAULT_EXECUTABLE: &str = "code";
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -15,7 +21,7 @@ pub struct Cli {
         long,
         global=true,
         value_name = "Executable",
-        default_value = "code",
+        default_value = DEFAULT_EXECUTABLE,
         value_parser=executable_exists
     )]
     executable: Option<PathBuf>,
