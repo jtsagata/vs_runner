@@ -81,51 +81,49 @@ fn display_as_list(exts: Vec<ExtensionData>, cli: &ListCLI) {
     }
 }
 
+// Display extensions as table
 fn display_as_table(exts: Vec<ExtensionData>, cli: &ListCLI) {
     use colored::*;
-    use terminal_size::terminal_size;
 
     if exts.is_empty() {
         println!("There is no installed extensions on profile");
         return;
     }
 
-    let (t_wdth, _) = terminal_size().unwrap();
     let names: Vec<String> = exts.iter().map(|e| e.get_name(false)).collect();
     let name_len = names.iter().max_by_key(|e| e.len()).unwrap().len();
-    let desc_len: usize = usize::from(t_wdth.0) - name_len - 2;
+
+    // Print Header
     println!(
-        "{:a$}{:c$}",
+        "{:a$}{}",
         "Name".bold().blue(),
         "Description".bold().blue(),
-        a = name_len + 1,
-        c = desc_len
+        a = name_len + 3,
     );
 
     for e in exts.iter() {
         let disp_name = e.display_name.clone().unwrap_or("".to_string());
-        let descr = e.description.clone().unwrap_or("".to_string());
-        let desc = if descr == "%ext.description%" {
-            "".to_string()
-        } else {
-            truncate_ellipse(&descr, desc_len)
-        };
-
         println!(
-            "{:a$}{:c$}",
+            "- {:a$}{}",
             e.get_name(false).bold(),
             disp_name.green(),
-            a = name_len + 1,
-            c = desc_len
+            a = name_len + 3,
         );
-        if desc.len() != 0 && cli.commends {
-            println!("{:a$}{:c$}", "", desc, a = name_len + 1, c = desc_len);
+
+        // Print description
+        let descr = e.description.clone().unwrap_or("".to_string());
+        if descr.len() != 0 && cli.commends {
+            let (msg, options) = (descr, textwrap::Options::with_termwidth());
+            println!("{}", textwrap::fill(&msg, &options));
         }
 
         if e.categories.len() != 0 && cli.commends {
-            let mut txt = format!("Type: {}", e.categories.join(", "));
-            txt = truncate_ellipse(&txt, desc_len);
-            println!("{:a$}{:c$}", "", txt, a = name_len + 1, c = desc_len);
+            let txt = format!(
+                "{} {}",
+                "Type:".truecolor(135, 48, 167),
+                e.categories.join(", ").truecolor(135, 88, 167)
+            );
+            println!("{}", txt);
         }
 
         if cli.commends {
@@ -192,19 +190,4 @@ impl PartialOrd for ExtensionData {
             .to_uppercase()
             .partial_cmp(&other.get_name(true).to_uppercase())
     }
-}
-
-fn truncate_ellipse(text: &str, len: usize) -> String {
-    use unicode_segmentation::UnicodeSegmentation;
-
-    if text.graphemes(true).count() <= len {
-        return String::from(text);
-    } else if len == 0 {
-        return String::from("");
-    }
-
-    text.graphemes(true)
-        .take(len)
-        .chain("…".graphemes(true))
-        .collect()
 }
