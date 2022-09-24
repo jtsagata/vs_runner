@@ -26,6 +26,7 @@ pub fn list(cli: &ListCLI, vs_options: &VSCodeOptions) {
     }
 }
 
+// Parse JSON file and return list of extensions as ExtensionOptions struct
 fn get_extension_data(vs_options: &VSCodeOptions) -> Vec<ExtensionOptions> {
     let mut exts = Vec::new();
     let read_dir = std::fs::read_dir(vs_options.ext_dir.as_path()).unwrap();
@@ -50,7 +51,7 @@ fn get_extension_data(vs_options: &VSCodeOptions) -> Vec<ExtensionOptions> {
     exts
 }
 
-#[derive(Debug, Ord)]
+#[derive(Debug, PartialEq, Eq, Ord)]
 struct ExtensionOptions {
     publisher: String,
     name: String,
@@ -70,16 +71,9 @@ impl ExtensionOptions {
     }
 }
 
-impl Eq for ExtensionOptions {}
-
-impl PartialEq for ExtensionOptions {
-    fn eq(&self, other: &Self) -> bool {
-        self.get_name(true) == other.get_name(true)
-    }
-}
-
 impl PartialOrd for ExtensionOptions {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        // Sort case insensitive as VS Code
         self.get_name(true)
             .to_uppercase()
             .partial_cmp(&other.get_name(true).to_uppercase())
